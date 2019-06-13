@@ -33,7 +33,7 @@ albacore$YEAR <- as.numeric(format(albacore$DATE_FISHED,'%Y'))
 albacore$MONTH <- as.numeric(format(albacore$DATE_FISHED,'%m'))
 albacore<-albacore[c(-1,-3,-4,-5,-6,-9,-11)]
 albacore<-albacore[complete.cases(albacore),]
-albacore2<-albacore[which(albacore$YEAR=='2005'),]
+albacore2<-albacore[which(albacore$YEAR=='2013'),]
 
 coordinates(albacore2) = ~LONGITUDE + LATITUDE
 
