@@ -4,20 +4,28 @@ rm(list=ls())
 
 install.packages('rworldmap')
 install.packages('spatialEco')
+install.packages('RColorBrewer')
 
 library(rworldmap)
 library('spatialEco')
+library('RColorBrewer')
 
 newmap <- getMap(resolution = "low")
 albacore<-read.csv('albacore_troll_complete_longtweak.csv')
 
+
 albacore$DATE_FISHED<-as.Date(albacore$DATE_FISHED, format='%m/%d/%y')
 albacore$YEAR <- as.numeric(format(albacore$DATE_FISHED,'%Y'))
 albacore$MONTH <- as.numeric(format(albacore$DATE_FISHED,'%m'))
-albacore<-albacore[c(-1,-3,-4,-5,-6,-9,-11)]
+albacore<-albacore[c(-1,-3,-4,-5,-6,-9,-11)] ## Take out -4 if you want CPUE
+albacore<-subset(albacore, YEAR!= 1991)
+albacore<-subset(albacore, KEPT!= -99)
+albacore<-subset(albacore, HOURS!= 0) ## Only for CPUE
+albacore$FishHour<-albacore$KEPT/albacore$HOURS ## Only for CPUE
 albacore<-albacore[complete.cases(albacore),]
 
-Specs<-read.csv('CombinedTest_CompleteMatch_Cleaned.csv')
+
+Specs<-read.csv('CompleteMatch_Cleaned.csv')
 Tuna<-merge(x=albacore, y=Specs, by="Vessel_ID", all.x=TRUE)
 Tuna<-Tuna[which(Tuna$LONGITUDE > -210),]
 Tuna<-Tuna[which(Tuna$LONGITUDE < -115 ),]
@@ -62,14 +70,14 @@ wt.2000 <- wt.centroid(TunaYear, 'KEPT', sp=TRUE)
 points(wt.2000, pch=19, col='red', cex=1.5)
 
 
-
+###Change 'KEPT' in this Function to FishHour if CPUE is desired
 
 load.file <- function(filename) {
   coordinates(filename) = ~LONGITUDE + LATITUDE
   wt.2000 <- wt.centroid(filename, 'KEPT', sp=TRUE)
   x<-as.data.frame(wt.2000)
   names(x)<-c("LONGITUDE", "LATITUDE")
-  y<-as.data.frame(aggregate(KEPT~YEAR, data=filename, FUN=sum))
+  y<-as.data.frame(aggregate(KEPT~YEAR, data=filename, FUN=sum)) ### Change from sum to mean if CPUE is desired
   Value<-as.data.frame(c(x,y))
 }
 
@@ -80,8 +88,9 @@ output <- matrix(unlist(data), ncol = 4, byrow = TRUE)
 Centroids<-as.data.frame(output)
 names(Centroids)<-c("LONGITUDE", "LATITUDE", "YEAR", "FISH")
 
-plot(newmap, xlim = c(-140, -120), ylim = c(40, 50), asp = 1)
-points(Centroids$LONGITUDE, Centroids$LATITUDE, pch=21, cex=Centroids$FISH/500000)
-text(LATITUDE~LONGITUDE, labels=YEAR, data=Centroids, cex=.3, pos=4)
+plot(newmap, xlim = c(-150, -124), ylim = c(43, 47), asp = 1)
+points(Centroids$LONGITUDE, Centroids$LATITUDE, pch=21, cex=Centroids$FISH/300000, col=terrain.colors(25))
+text(LATITUDE~LONGITUDE, labels=YEAR, data=Centroids, cex=.4, pos=1)
+
 
 
